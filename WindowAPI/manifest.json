@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Window Controller API",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Bridge between the Window Controller Gandi extension and the Chrome browser window API.",
   "permissions": ["windows"],
   "host_permissions": ["<all_urls>"],
