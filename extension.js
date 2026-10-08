@@ -44,6 +44,8 @@
         color3: '#2E5DA8',
         blocks: [
           { opcode:'apiAvailable', blockType:Scratch.BlockType.BOOLEAN, text:'Window API available?' },
+          { opcode:'gandiTabFocused', blockType:Scratch.BlockType.BOOLEAN, text:'Gandi tab focused?' },
+          { opcode:'gandiTabActive', blockType:Scratch.BlockType.BOOLEAN, text:'Gandi tab active?' },
 
           { opcode:'windowX', blockType:Scratch.BlockType.REPORTER, text:'window X' },
           { opcode:'windowY', blockType:Scratch.BlockType.REPORTER, text:'window Y' },
@@ -52,6 +54,8 @@
           { opcode:'windowState', blockType:Scratch.BlockType.REPORTER, text:'window state' },
           { opcode:'windowFocused', blockType:Scratch.BlockType.BOOLEAN, text:'window focused?' },
           { opcode:'windowType', blockType:Scratch.BlockType.REPORTER, text:'window type' },
+          { opcode:'gandiTabURL', blockType:Scratch.BlockType.REPORTER, text:'Gandi tab URL' },
+          { opcode:'gandiTabTitle', blockType:Scratch.BlockType.REPORTER, text:'Gandi tab title' },
 
           { opcode:'tabFullscreen', blockType:Scratch.BlockType.BOOLEAN, text:'tab fullscreen?' },
           { opcode:'pageFullscreenState', blockType:Scratch.BlockType.REPORTER, text:'tab fullscreen state' },
@@ -61,6 +65,13 @@
           { opcode:'devicePixelRatio', blockType:Scratch.BlockType.REPORTER, text:'device pixel ratio' },
           { opcode:'scrollX', blockType:Scratch.BlockType.REPORTER, text:'page scroll X' },
           { opcode:'scrollY', blockType:Scratch.BlockType.REPORTER, text:'page scroll Y' },
+
+          {
+            opcode:'newTab',
+            blockType:Scratch.BlockType.COMMAND,
+            text:'open new tab [URL]',
+            arguments:{URL:{type:Scratch.ArgumentType.STRING,defaultValue:'https://www.google.com/'}}
+          },
 
           {
             opcode:'moveWindow',
@@ -128,6 +139,30 @@
       return this.request('getWindow');
     }
 
+    async getTab() {
+      return this.request('getTab');
+    }
+
+    async gandiTabFocused() {
+      const result = await this.getTab();
+      return !!result.ok && !!result.focused;
+    }
+
+    async gandiTabActive() {
+      const result = await this.getTab();
+      return !!result.ok && !!result.active;
+    }
+
+    async gandiTabURL() {
+      const result = await this.getTab();
+      return result.ok ? (result.url || '') : '';
+    }
+
+    async gandiTabTitle() {
+      const result = await this.getTab();
+      return result.ok ? (result.title || '') : '';
+    }
+
     async windowX() {
       const result = await this.getWindow();
       return result.ok ? result.left : 0;
@@ -189,6 +224,10 @@
 
     scrollY() {
       return window.scrollY;
+    }
+
+    async newTab(args) {
+      await this.request('newTab', {url: String(args.URL || '')});
     }
 
     async moveWindow(args) {
