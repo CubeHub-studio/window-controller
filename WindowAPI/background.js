@@ -1,9 +1,58 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  const tabId = sender.tab && sender.tab.id;
   const windowId = sender.tab && sender.tab.windowId;
 
-  if (windowId == null) {
-    sendResponse({ ok: false, error: "No browser window found." });
+  if (tabId == null || windowId == null) {
+    sendResponse({ ok: false, error: "No browser tab/window found." });
     return;
+  }
+
+  if (message.type === "getTab") {
+    chrome.tabs.get(tabId, (tab) => {
+      if (chrome.runtime.lastError || !tab) {
+        sendResponse({ ok: false, error: chrome.runtime.lastError?.message || "Unable to get Gandi tab." });
+        return;
+      }
+
+      chrome.windows.get(windowId, (win) => {
+        if (chrome.runtime.lastError || !win) {
+          sendResponse({ ok: false, error: chrome.runtime.lastError?.message || "Unable to get browser window." });
+          return;
+        }
+
+        sendResponse({
+          ok: true,
+          active: !!tab.active,
+          focused: !!tab.active && !!win.focused,
+          url: tab.url || "",
+          title: tab.title || "",
+          tabId: tab.id,
+          windowId: win.id
+        });
+      });
+    });
+    return true;
+  }
+
+  if (message.type === "newTab") {
+    const url = String(message.url || "").trim();
+    chrome.tabs.create({
+      url: url || "about:blank",
+      active: false
+    }, (tab) => {
+      if (chrome.runtime.lastError || !tab) {
+        sendResponse({ ok: false, error: chrome.runtime.lastError?.message || "Unable to create tab." });
+        return;
+      }
+
+      sendResponse({
+        ok: true,
+        tabId: tab.id,
+        windowId: tab.windowId,
+        url: tab.pendingUrl || tab.url || url
+      });
+    });
+    return true;
   }
 
   if (message.type === "getWindow") {
